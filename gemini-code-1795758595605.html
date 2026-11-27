@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GARAKE SPRITE STUDIO v2.1 // Pixel Anim, GIF & Chiptune Lab</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: #111827;
+            --border-color: #1f2937;
+            --accent-cyan: #00f0ff;
+            --accent-green: #00ff88;
+            --accent-yellow: #fde047;
+            --accent-pink: #ff0055;
+            --accent-purple: #c084fc;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: clip;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Meiryo, monospace;
+        }
+        body {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 1120px;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--accent-cyan);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+            overflow-wrap: anywhere;
+        }
+        .badge {
+            font-size: 11px;
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--accent-green);
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--accent-green);
+            white-space: nowrap;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1.08fr 0.92fr;
+            gap: 14px;
+            width: 100%;
+            min-width: 0;
+        }
+        @media (max-width: 900px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            width: 100%;
+            min-width: 0;
+        }
+        .panel-title {
+            font-size: 12px;
+            color: var(--accent-cyan);
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 6px;
+        }
+        .control-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            min-width: 0;
+        }
+        @media (max-width: 520px) {
+            .control-row { grid-template-columns: 1fr; }
+        }
+        .label-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 0;
+        }
+        select, textarea {
+            background: var(--bg-dark);
+            border: 1px solid #334155;
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+            width: 100%;
+            min-width: 0;
+            font-family: monospace;
+        }
+        select:focus, textarea:focus {
+            border-color: var(--accent-cyan);
+        }
+        .palette-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .swatch-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+        .swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 2px solid #334155;
+            cursor: pointer;
+            transition: transform 0.1s;
+            padding: 0;
+        }
+        .swatch.active {
+            border-color: #ffffff;
+            transform: scale(1.12);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+        .swatch.transparent-bg {
+            background-image:
+                linear-gradient(45deg, #334155 25%, transparent 25%),
+                linear-gradient(-45deg, #334155 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #334155 75%),
+                linear-gradient(-45deg, transparent 75%, #334155 75%);
+            background-size: 10px 10px;
+            background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+            background-color: #0f172a;
+        }
+        .canvas-stage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #06090f;
+            border: 1px dashed #334155;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #draw-canvas {
+            width: 100%;
+            max-width: 340px;
+            aspect-ratio: 1 / 1;
+            image-rendering: pixelated;
+            cursor: crosshair;
+            border: 1px solid #1e293b;
+            border-radius: 4px;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .preview-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #06090f;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        #anim-canvas {
+            width: 92px;
+            height: 92px;
+            flex: 0 0 92px;
+            image-rendering: pixelated;
+            background-image:
+                linear-gradient(45deg, #111827 25%, transparent 25%),
+                linear-gradient(-45deg, #111827 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #111827 75%),
+                linear-gradient(-45deg, transparent 75%, #111827 75%);
+            background-size: 12px 12px;
+            background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+            background-color: #090d16;
+            border: 1px solid #334155;
+            border-radius: 8px;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 7px;
+        }
+        .btn-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .btn {
+            background: transparent;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.15s;
+            text-align: center;
+            width: 100%;
+        }
+        .btn:hover { background: var(--accent-cyan); color: var(--bg-dark); }
+        .btn-green { border-color: var(--accent-green); color: var(--accent-green); }
+        .btn-green:hover { background: var(--accent-green); color: var(--bg-dark); }
+        .btn-yellow { border-color: var(--accent-yellow); color: var(--accent-yellow); }
+        .btn-yellow:hover { background: var(--accent-yellow); color: var(--bg-dark); }
+        .btn-pink { border-color: var(--accent-pink); color: var(--accent-pink); }
+        .btn-pink:hover { background: var(--accent-pink); color: var(--bg-dark); }
+        .btn-purple { border-color: var(--accent-purple); color: var(--accent-purple); }
+        .btn-purple:hover { background: var(--accent-purple); color: var(--bg-dark); }
+        textarea.code-out {
+            height: 70px;
+            font-size: 11px;
+            resize: vertical;
+            color: var(--text-muted);
+        }
+        .note-small {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+        .toast {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.96);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 999;
+            display: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>GARAKE SPRITE STUDIO v2.1 // Pixel Anim, GIF & Chiptune Lab</h1>
+        <span class="badge">GIF透過修正・連番命名・タッチ対応</span>
+    </header>
+
+    <div class="grid-2">
+        <div class="panel">
+            <div class="panel-title">🎨 1. ドットキャンバス・パレット・画像/GIF保存</div>
+
+            <div class="control-row">
+                <div class="label-group">
+                    <span>グリッドサイズ</span>
+                    <select id="grid-size" onchange="changeGridSize()">
+                        <option value="8">8 × 8 (ミニアイコン)</option>
+                        <option value="12" selected>12 × 12 (ガラケー風キャラ)</option>
+                        <option value="16">16 × 16 (標準スプライト)</option>
+                        <option value="20">20 × 20 (ガラケー絵文字サイズ)</option>
+                        <option value="25">25 × 25 (レトロゲーム25ドット)</option>
+                    </select>
+                </div>
+                <div class="label-group">
+                    <span>レトロ＆テーマパレット</span>
+                    <select id="palette-mode" onchange="changePalette()">
+                        <option value="mono4" selected>4色 携帯モノクロ系</option>
+                        <option value="gb4">4色 ゲームボーイ風 (DMG)</option>
+                        <option value="fc4">4色 ファミコン風</option>
+                        <option value="vb4">4色 赤黒バーチャル風</option>
+                        <option value="neon4">4色 サイバーネオン</option>
+                        <option value="pastel6">6色 ポップパステル</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="label-group">
+                <span>カラーパレット（0番＝透過/消しゴム、1番〜＝描画色）</span>
+                <div id="palette-row" class="palette-row"></div>
+            </div>
+
+            <div class="canvas-stage">
+                <canvas id="draw-canvas" width="250" height="250"></canvas>
+            </div>
+            <div class="note-small">📱 スマホの指タッチ・なぞり描き対応（スクロールせずドット描画できます）</div>
+
+            <div class="btn-grid-3">
+                <button type="button" class="btn btn-yellow" onclick="stampPreset('heart')">♥ ハート</button>
+                <button type="button" class="btn btn-yellow" onclick="stampPreset('star')">★ スター</button>
+                <button type="button" class="btn btn-pink" onclick="clearFrame()">🗑 クリア</button>
+            </div>
+
+            <div class="control-row">
+                <div class="label-group">
+                    <span>書き出し拡大倍率</span>
+                    <select id="export-scale">
+                        <option value="1">1倍 (ドット原寸)</option>
+                        <option value="6">6倍 (くっきりドット)</option>
+                        <option value="12" selected>12倍 (お披露目・共有向け)</option>
+                    </select>
+                </div>
+                <div class="label-group">
+                    <span>GIFフレーム間隔 (ms)</span>
+                    <select id="gif-delay" onchange="restartAnimIfRunning()">
+                        <option value="120">120ms (キビキビ)</option>
+                        <option value="180" selected>180ms (標準アニメ)</option>
+                        <option value="280">280ms (ゆったり)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="btn-grid">
+                <button type="button" class="btn btn-green" onclick="downloadTransparentPng()">🖼 透過PNG保存</button>
+                <button type="button" class="btn" onclick="downloadAnimatedGif()">🎞 透過アニメGIF保存</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">🔊 2. アニメ8種・SFX/BGM・音声保存・コード出力</div>
+
+            <div class="preview-card">
+                <canvas id="anim-canvas" width="96" height="96"></canvas>
+                <div style="font-size:11px; color:var(--text-muted); line-height:1.45; flex:1; min-width:0;">
+                    <div class="label-group" style="margin-bottom:6px;">
+                        <span>アニメパターン (8種類)</span>
+                        <select id="anim-pattern" onchange="updateAll()">
+                            <option value="idle" selected>① ゆらゆら (上下呼吸)</option>
+                            <option value="hop">② ピョン跳ね (ジャンプ)</option>
+                            <option value="shake">③ ブルブル (左右振動)</option>
+                            <option value="blink">④ 点滅・まばたき</option>
+                            <option value="march">⑤ 足踏み (左右交互＋上下)</option>
+                            <option value="wave">⑥ ウェーブ (斜めバウンス)</option>
+                            <option value="pulse">⑦ パルス (拡縮ポンプ)</option>
+                            <option value="spin">⑧ 90度ステップ回転</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-green" onclick="toggleAnim()">▶ アニメ再生 / 停止</button>
+                </div>
+            </div>
+
+            <div class="label-group">
+                <span>ガラケー風SFX（選択中: <strong id="last-sfx-label" style="color:var(--accent-cyan);">coin</strong>）</span>
+                <div class="btn-grid-3">
+                    <button type="button" class="btn" onclick="playSfx('jump')">⬆ ピコッ</button>
+                    <button type="button" class="btn btn-green" onclick="playSfx('coin')">🪙 ピロリン</button>
+                    <button type="button" class="btn btn-yellow" onclick="playSfx('alert')">🔔 ピピピ</button>
+                    <button type="button" class="btn btn-pink" onclick="playSfx('power')">⚡ ギュイーン</button>
+                    <button type="button" class="btn btn-purple" onclick="playSfx('move')">🕹 ピコポコ</button>
+                    <button type="button" class="btn btn-green" onclick="playSfx('fanfare')">🚩 ファンファーレ</button>
+                </div>
+            </div>
+
+            <div class="label-group">
+                <span>ガラケー着信・8bit風ループBGM</span>
+                <div class="control-row">
+                    <select id="bgm-mode" onchange="updateBgmCode()">
+                        <option value="ringtone" selected>♪ ガラケー着信メロディ風</option>
+                        <option value="adventure">♪ 8bit冒険フィールド風</option>
+                        <option value="stroll">♪ ピコピコお散歩ループ</option>
+                    </select>
+                    <button type="button" class="btn btn-purple" id="bgm-toggle-btn" onclick="toggleBgm()">▶ BGM再生</button>
+                </div>
+            </div>
+
+            <div class="btn-grid">
+                <button type="button" class="btn btn-yellow" onclick="downloadAudioWav('sfx')">🔊 選択SFXをWAV保存</button>
+                <button type="button" class="btn btn-purple" onclick="downloadAudioWav('bgm')">🎼 選択BGMをWAV保存</button>
+            </div>
+            <div class="note-small">
+                ※ GIFフォーマット仕様上、GIF自体には音声を入れられません。音声を添える場合は「WAV保存」や画面録画と組み合わせてお使いください。
+            </div>
+
+            <div class="label-group">
+                <span>① ドット配列コード</span>
+                <textarea id="pattern-out" class="code-out" readonly></textarea>
+                <button type="button" class="btn" onclick="copyById('pattern-out', 'ドット配列コードをコピーしました！')">📋 ドット配列をコピー</button>
+            </div>
+
+            <div class="label-group">
+                <span>② 効果音(SFX)＆BGMコード</span>
+                <textarea id="sfx-code-out" class="code-out" readonly></textarea>
+                <button type="button" class="btn btn-yellow" onclick="copyById('sfx-code-out', 'SFX＆BGMコードをコピーしました！')">🎵 音コードをコピー</button>
+            </div>
+
+            <div class="label-group">
+                <span>③ 動きアニメコード</span>
+                <textarea id="anim-code-out" class="code-out" readonly></textarea>
+                <button type="button" class="btn btn-green" onclick="copyById('anim-code-out', 'アニメ動きコードをコピーしました！')">🎞️ 動きコードをコピー</button>
+            </div>
+
+            <button type="button" class="btn btn-pink" style="padding:11px; font-size:12px;" onclick="shareMediaAndAllCodes()">
+                📤 Web共有 (アニメGIF＋全コードをスマホ/メモへ共有)
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    const PALETTES = {
+        mono4: [null, '#0f172a', '#64748b', '#e2e8f0', '#00f0ff'],
+        gb4: [null, '#0f380f', '#306230', '#8bac0f', '#9bbc0f'],
+        fc4: [null, '#111111', '#d62828', '#fcbf49', '#f8f9fa'],
+        vb4: [null, '#140005', '#590016', '#b3002d', '#ff1e56'],
+        neon4: [null, '#090d16', '#ff0055', '#fde047', '#00f0ff'],
+        pastel6: [null, '#1e293b', '#f472b6', '#fbbf24', '#34d399', '#60a5fa', '#f8fafc']
+    };
+
+    const SFX_NOTES = {
+        jump: [[440, 0, 0.06], [660, 0.06, 0.09]],
+        coin: [[987.77, 0, 0.06], [1318.51, 0.06, 0.16]],
+        alert: [[880, 0, 0.06], [880, 0.11, 0.06], [880, 0.22, 0.09]],
+        power: [[220, 0, 0.07], [330, 0.07, 0.07], [440, 0.14, 0.07], [660, 0.21, 0.16]],
+        move: [[523.25, 0, 0.04], [392.00, 0.045, 0.05]],
+        fanfare: [[523.25, 0, 0.08], [659.25, 0.09, 0.08], [783.99, 0.18, 0.08], [1046.50, 0.27, 0.22]]
+    };
+
+    const BGM_PATTERNS = {
+        ringtone: {
+            stepSec: 0.13,
+            notes: [783.99, 987.77, 1174.66, 987.77, 1318.51, 1174.66, 987.77, 783.99, 659.25, 783.99, 987.77, 0, 1174.66, 987.77, 783.99, 0]
+        },
+        adventure: {
+            stepSec: 0.15,
+            notes: [523.25, 0, 659.25, 783.99, 0, 783.99, 659.25, 587.33, 523.25, 587.33, 659.25, 523.25, 440.00, 0, 493.88, 0]
+        },
+        stroll: {
+            stepSec: 0.16,
+            notes: [440.00, 523.25, 659.25, 523.25, 587.33, 659.25, 783.99, 659.25, 440.00, 523.25, 659.25, 880.00, 783.99, 659.25, 523.25, 0]
+        }
+    };
+
+    let gridSize = 12;
+    let currentPalette = PALETTES.mono4;
+    let selectedColorIndex = 4;
+    let gridData = [];
+    let isDrawing = false;
+    let animTimer = null;
+    let animStep = 0;
+    let lastSfxType = 'coin';
+    let audioCtx = null;
+    let bgmTimer = null;
+    let bgmStepIndex = 0;
+
+    const drawCanvas = document.getElementById('draw-canvas');
+    const drawCtx = drawCanvas.getContext('2d');
+    const animCanvas = document.getElementById('anim-canvas');
+    const animCtx = animCanvas.getContext('2d');
+
+    function getUniqueStamp() {
+        const d = new Date();
+        const pad = (n, w = 2) => String(n).padStart(w, '0');
+        return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}_${pad(d.getMilliseconds(), 3)}`;
+    }
+
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.style.display = 'block';
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => { el.style.display = 'none'; }, 2400);
+    }
+
+    function initGrid(size) {
+        gridSize = size;
+        gridData = Array.from({ length: size }, () => Array(size).fill(0));
+        updateAll();
+    }
+
+    function changeGridSize() {
+        initGrid(parseInt(document.getElementById('grid-size').value, 10) || 12);
+    }
+
+    function changePalette() {
+        const mode = document.getElementById('palette-mode').value;
+        currentPalette = PALETTES[mode] || PALETTES.mono4;
+        if (selectedColorIndex >= currentPalette.length) {
+            selectedColorIndex = currentPalette.length - 1;
+        }
+        renderPaletteUI();
+        updateAll();
+    }
+
+    function renderPaletteUI() {
+        const row = document.getElementById('palette-row');
+        row.innerHTML = '';
+        currentPalette.forEach((col, idx) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'swatch-wrap';
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'swatch' + (col === null ? ' transparent-bg' : '') + (idx === selectedColorIndex ? ' active' : '');
+            if (col !== null) btn.style.backgroundColor = col;
+            btn.title = idx === 0 ? '0: 透過 (消しゴム)' : `${idx}: ${col}`;
+            btn.onclick = () => {
+                selectedColorIndex = idx;
+                renderPaletteUI();
+            };
+
+            const lbl = document.createElement('span');
+            lbl.textContent = idx === 0 ? '0(消)' : String(idx);
+
+            wrap.appendChild(btn);
+            wrap.appendChild(lbl);
+            row.appendChild(wrap);
+        });
+    }
+
+    function drawCheckerboard(ctx, w, h, cells) {
+        const cellW = w / cells;
+        const cellH = h / cells;
+        for (let y = 0; y < cells; y++) {
+            for (let x = 0; x < cells; x++) {
+                ctx.fillStyle = ((x + y) % 2 === 0) ? '#0d1320' : '#151e30';
+                ctx.fillRect(x * cellW, y * cellH, Math.ceil(cellW), Math.ceil(cellH));
+            }
+        }
+    }
+
+    function getTransformedGrid(step) {
+        const mode = document.getElementById('anim-pattern').value;
+        const out = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
+
+        if (mode === 'blink' && (step === 3 || step === 7)) {
+            return out;
+        }
+
+        let dx = 0;
+        let dy = 0;
+        let scale = 1;
+        let rotQuarter = 0;
+
+        if (mode === 'idle') {
+            dy = [0, -1, -1, 0, 0, 1, 1, 0][step % 8];
+        } else if (mode === 'hop') {
+            dy = [0, -1, -2, -2, -1, 0, 0, 0][step % 8];
+        } else if (mode === 'shake') {
+            dx = [0, -1, 1, -1, 1, 0, 0, 0][step % 8];
+        } else if (mode === 'march') {
+            dx = [0, -1, 0, 1, 0, -1, 0, 1][step % 8];
+            dy = [0, -1, 0, -1, 0, -1, 0, -1][step % 8];
+        } else if (mode === 'wave') {
+            const seq = [[0,0],[1,-1],[1,-1],[0,-1],[-1,0],[-1,1],[0,1],[0,0]];
+            [dx, dy] = seq[step % 8];
+        } else if (mode === 'pulse') {
+            scale = [1, 1.12, 1.2, 1.12, 1, 0.9, 0.85, 0.9][step % 8];
+        } else if (mode === 'spin') {
+            rotQuarter = Math.floor((step % 8) / 2);
+        }
+
+        const c = (gridSize - 1) / 2;
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const val = gridData[y][x];
+                if (!val) continue;
+
+                let tx = x - c;
+                let ty = y - c;
+
+                if (rotQuarter === 1) {
+                    const nx = -ty;
+                    const ny = tx;
+                    tx = nx;
+                    ty = ny;
+                } else if (rotQuarter === 2) {
+                    tx = -tx;
+                    ty = -ty;
+                } else if (rotQuarter === 3) {
+                    const nx = ty;
+                    const ny = -tx;
+                    tx = nx;
+                    ty = ny;
+                }
+
+                const fx = Math.round(c + tx * scale + dx);
+                const fy = Math.round(c + ty * scale + dy);
+                if (fx >= 0 && fx < gridSize && fy >= 0 && fy < gridSize) {
+                    out[fy][fx] = val;
+                }
+            }
+        }
+        return out;
+    }
+
+    function renderDrawCanvas() {
+        const w = drawCanvas.width;
+        const h = drawCanvas.height;
+        drawCtx.clearRect(0, 0, w, h);
+        drawCheckerboard(drawCtx, w, h, gridSize);
+
+        const cellW = w / gridSize;
+        const cellH = h / gridSize;
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const color = currentPalette[gridData[y][x]];
+                if (color) {
+                    drawCtx.fillStyle = color;
+                    drawCtx.fillRect(x * cellW, y * cellH, Math.ceil(cellW), Math.ceil(cellH));
+                }
+            }
+        }
+
+        drawCtx.strokeStyle = 'rgba(148, 163, 184, 0.16)';
+        drawCtx.lineWidth = 1;
+        for (let i = 1; i < gridSize; i++) {
+            const posX = Math.round(i * cellW) + 0.5;
+            const posY = Math.round(i * cellH) + 0.5;
+            drawCtx.beginPath(); drawCtx.moveTo(posX, 0); drawCtx.lineTo(posX, h); drawCtx.stroke();
+            drawCtx.beginPath(); drawCtx.moveTo(0, posY); drawCtx.lineTo(w, posY); drawCtx.stroke();
+        }
+    }
+
+    function renderAnimCanvas() {
+        const w = animCanvas.width;
+        const h = animCanvas.height;
+        animCtx.clearRect(0, 0, w, h);
+
+        const frameGrid = getTransformedGrid(animStep);
+        const cellW = w / gridSize;
+        const cellH = h / gridSize;
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const color = currentPalette[frameGrid[y][x]];
+                if (color) {
+                    animCtx.fillStyle = color;
+                    animCtx.fillRect(x * cellW, y * cellH, Math.ceil(cellW), Math.ceil(cellH));
+                }
+            }
+        }
+    }
+
+    function getPatternObject() {
+        return {
+            size: `${gridSize}x${gridSize}`,
+            palette: currentPalette,
+            rows: gridData.map(r => r.join(''))
+        };
+    }
+
+    function getAudioCodeString() {
+        const sfxType = lastSfxType;
+        const bgmKey = document.getElementById('bgm-mode').value;
+        return `// SFX (${sfxType}) & BGM (${bgmKey}) 再生コード
+const SFX = ${JSON.stringify(SFX_NOTES[sfxType])};
+const BGM = ${JSON.stringify(BGM_PATTERNS[bgmKey])};
+
+function playNotes(notes) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const now = ctx.currentTime;
+  notes.forEach(([freq, offset, dur]) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, now + offset);
+    gain.gain.setValueAtTime(0.05, now + offset);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now + offset); osc.stop(now + offset + dur);
+  });
+}`;
+    }
+
+    function getAnimCodeString() {
+        const p = getPatternObject();
+        const pattern = document.getElementById('anim-pattern').value;
+        const delayMs = parseInt(document.getElementById('gif-delay').value, 10) || 180;
+        return `// アニメパターン: ${pattern} (${delayMs}ms間隔 / 8ステップ)
+const sprite = ${JSON.stringify(p)};
+let step = 0;
+setInterval(() => {
+  step = (step + 1) % 8;
+  drawFrame(sprite, "${pattern}", step);
+}, ${delayMs});`;
+    }
+
+    function updateBgmCode() {
+        document.getElementById('sfx-code-out').value = getAudioCodeString();
+    }
+
+    function updateAll() {
+        renderDrawCanvas();
+        renderAnimCanvas();
+        document.getElementById('pattern-out').value = JSON.stringify(getPatternObject(), null, 2);
+        document.getElementById('sfx-code-out').value = getAudioCodeString();
+        document.getElementById('anim-code-out').value = getAnimCodeString();
+    }
+
+    function paintAtClientPos(clientX, clientY) {
+        const rect = drawCanvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const relX = (clientX - rect.left) / rect.width;
+        const relY = (clientY - rect.top) / rect.height;
+        const gx = Math.floor(relX * gridSize);
+        const gy = Math.floor(relY * gridSize);
+        if (gx >= 0 && gx < gridSize && gy >= 0 && gy < gridSize) {
+            if (gridData[gy][gx] !== selectedColorIndex) {
+                gridData[gy][gx] = selectedColorIndex;
+                updateAll();
+            }
+        }
+    }
+
+    drawCanvas.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        try { drawCanvas.setPointerCapture(e.pointerId); } catch (err) {}
+        paintAtClientPos(e.clientX, e.clientY);
+    }, { passive: false });
+
+    drawCanvas.addEventListener('pointermove', (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        paintAtClientPos(e.clientX, e.clientY);
+    }, { passive: false });
+
+    drawCanvas.addEventListener('pointerup', () => { isDrawing = false; });
+    drawCanvas.addEventListener('pointercancel', () => { isDrawing = false; });
+
+    function clearFrame() {
+        gridData = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
+        updateAll();
+    }
+
+    function stampPreset(kind) {
+        clearFrame();
+        const c = (gridSize - 1) / 2;
+        const fillIdx = Math.max(1, currentPalette.length - 1);
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const dx = x - c;
+                const dy = y - c;
+                if (kind === 'heart') {
+                    const nx = dx / (gridSize * 0.36);
+                    const ny = -dy / (gridSize * 0.34) + 0.25;
+                    const val = Math.pow(nx * nx + ny * ny - 1, 3) - nx * nx * Math.pow(ny, 3);
+                    if (val <= 0) gridData[y][x] = fillIdx;
+                } else if (kind === 'star') {
+                    const dist = Math.abs(dx) + Math.abs(dy);
+                    if (dist <= Math.max(2, Math.floor(gridSize * 0.35))) {
+                        gridData[y][x] = fillIdx;
+                    }
+                }
+            }
+        }
+        updateAll();
+    }
+
+    function toggleAnim() {
+        if (animTimer) {
+            clearInterval(animTimer);
+            animTimer = null;
+            animStep = 0;
+            renderAnimCanvas();
+            return;
+        }
+        const delayMs = parseInt(document.getElementById('gif-delay').value, 10) || 180;
+        animTimer = setInterval(() => {
+            animStep = (animStep + 1) % 8;
+            renderAnimCanvas();
+        }, delayMs);
+    }
+
+    function restartAnimIfRunning() {
+        if (animTimer) {
+            toggleAnim();
+            toggleAnim();
+        }
+        updateAll();
+    }
+
+    function ensureAudioCtx() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        return audioCtx;
+    }
+
+    function playToneSegment(ctx, freq, startTime, durSec, vol = 0.05) {
+        if (!freq || freq <= 0) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(vol, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0008, startTime + durSec);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + durSec);
+    }
+
+    function playSfx(type) {
+        lastSfxType = type;
+        document.getElementById('last-sfx-label').textContent = type;
+        updateBgmCode();
+        try {
+            const ctx = ensureAudioCtx();
+            const now = ctx.currentTime;
+            const notes = SFX_NOTES[type] || SFX_NOTES.coin;
+            notes.forEach(([freq, offset, dur]) => {
+                playToneSegment(ctx, freq, now + offset, dur, 0.05);
+            });
+        } catch (e) {}
+    }
+
+    function toggleBgm() {
+        const btn = document.getElementById('bgm-toggle-btn');
+        if (bgmTimer) {
+            clearInterval(bgmTimer);
+            bgmTimer = null;
+            bgmStepIndex = 0;
+            btn.textContent = '▶ BGM再生';
+            return;
+        }
+        const key = document.getElementById('bgm-mode').value;
+        const pat = BGM_PATTERNS[key] || BGM_PATTERNS.ringtone;
+        bgmStepIndex = 0;
+        btn.textContent = '⏹ BGM停止';
+
+        const tick = () => {
+            try {
+                const ctx = ensureAudioCtx();
+                const freq = pat.notes[bgmStepIndex % pat.notes.length];
+                if (freq > 0) {
+                    playToneSegment(ctx, freq, ctx.currentTime, pat.stepSec * 0.85, 0.035);
+                }
+            } catch (e) {}
+            bgmStepIndex = (bgmStepIndex + 1) % pat.notes.length;
+        };
+
+        tick();
+        bgmTimer = setInterval(tick, Math.round(pat.stepSec * 1000));
+    }
+
+    function renderAudioWavBlob(mode) {
+        const sampleRate = 22050;
+        let totalDur = 0.6;
+        let events = [];
+
+        if (mode === 'sfx') {
+            const notes = SFX_NOTES[lastSfxType] || SFX_NOTES.coin;
+            events = notes;
+            totalDur = Math.max(0.3, ...notes.map(([, off, dur]) => off + dur + 0.05));
+        } else {
+            const key = document.getElementById('bgm-mode').value;
+            const pat = BGM_PATTERNS[key] || BGM_PATTERNS.ringtone;
+            totalDur = pat.stepSec * pat.notes.length;
+            pat.notes.forEach((freq, i) => {
+                if (freq > 0) {
+                    events.push([freq, i * pat.stepSec, pat.stepSec * 0.85]);
+                }
+            });
+        }
+
+        const numSamples = Math.ceil(sampleRate * totalDur);
+        const samples = new Float32Array(numSamples);
+
+        for (let i = 0; i < numSamples; i++) {
+            const t = i / sampleRate;
+            let amp = 0;
+            for (const [freq, start, dur] of events) {
+                if (t >= start && t <= start + dur) {
+                    const env = Math.max(0, 1 - (t - start) / dur);
+                    const sq = Math.sin(2 * Math.PI * freq * t) >= 0 ? 1 : -1;
+                    amp += sq * env * 0.22;
+                }
+            }
+            samples[i] = Math.max(-1, Math.min(1, amp));
+        }
+
+        const buffer = new ArrayBuffer(44 + numSamples * 2);
+        const view = new DataView(buffer);
+        const writeStr = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+
+        writeStr(0, 'RIFF');
+        view.setUint32(4, 36 + numSamples * 2, true);
+        writeStr(8, 'WAVE');
+        writeStr(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeStr(36, 'data');
+        view.setUint32(40, numSamples * 2, true);
+
+        let offset = 44;
+        for (let i = 0; i < numSamples; i++) {
+            const s = Math.max(-1, Math.min(1, samples[i]));
+            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+            offset += 2;
+        }
+        return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function downloadAudioWav(mode) {
+        const blob = renderAudioWavBlob(mode);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const tag = mode === 'sfx' ? `sfx_${lastSfxType}` : `bgm_${document.getElementById('bgm-mode').value}`;
+        link.download = `garake_${tag}_${getUniqueStamp()}.wav`;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('WAV音声ファイルを保存しました！');
+    }
+
+    function createTransparentPngCanvas(scale, step = 0) {
+        const out = document.createElement('canvas');
+        out.width = gridSize * scale;
+        out.height = gridSize * scale;
+        const ctx = out.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        const frameGrid = getTransformedGrid(step);
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const color = currentPalette[frameGrid[y][x]];
+                if (color) {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x * scale, y * scale, scale, scale);
+                }
+            }
+        }
+        return out;
+    }
+
+    function downloadTransparentPng() {
+        const scale = parseInt(document.getElementById('export-scale').value, 10) || 12;
+        const palMode = document.getElementById('palette-mode').value;
+        const outCanvas = createTransparentPngCanvas(scale, 0);
+        const link = document.createElement('a');
+        link.download = `garake_${gridSize}x${gridSize}_${palMode}_${getUniqueStamp()}.png`;
+        link.href = outCanvas.toDataURL('image/png');
+        link.click();
+        showToast('透過PNG画像を保存しました！');
+    }
+
+    // パレット色数に合わせてビット幅を自動調整し、透過(index 0)を確実に扱うGIFエンコーダ
+    function encodeAnimatedGifBlob(framesIndices, width, height, delayMs) {
+        const transparentIndex = 0;
+        const colorCount = Math.max(2, currentPalette.length);
+        // 2, 4, 8 のいずれかのテーブルサイズを選択
+        const tableSize = colorCount <= 2 ? 2 : (colorCount <= 4 ? 4 : 8);
+        const bitsPerPixel = tableSize === 2 ? 1 : (tableSize === 4 ? 2 : 3);
+        const minCodeSize = Math.max(2, bitsPerPixel);
+
+        const palette = [];
+        for (let i = 0; i < tableSize; i++) {
+            if (i === transparentIndex) {
+                palette.push([0, 0, 0]); // 透過インデックス
+            } else {
+                const hex = currentPalette[i] || '#00f0ff';
+                const clean = hex.replace('#', '');
+                const r = parseInt(clean.slice(0, 2), 16) || 0;
+                const g = parseInt(clean.slice(2, 4), 16) || 0;
+                const b = parseInt(clean.slice(4, 6), 16) || 0;
+                palette.push([r, g, b]);
+            }
+        }
+
+        const out = [];
+        const pushBytes = (...arr) => arr.forEach(b => out.push(b & 0xff));
+        const pushShort = (v) => pushBytes(v & 0xff, (v >> 8) & 0xff);
+
+        // GIF89a Header
+        pushBytes(0x47, 0x49, 0x46, 0x38, 0x39, 0x61);
+        pushShort(width);
+        pushShort(height);
+
+        const gctFlag = 0x80;
+        const colorRes = ((bitsPerPixel - 1) & 0x07) << 4;
+        const gctSizeBits = (bitsPerPixel - 1) & 0x07;
+        pushBytes(gctFlag | colorRes | gctSizeBits, transparentIndex, 0x00);
+
+        for (let i = 0; i < tableSize; i++) {
+            const [r, g, b] = palette[i];
+            pushBytes(r, g, b);
+        }
+
+        // Netscape 2.0 Loop Extension (無限ループ)
+        pushBytes(0x21, 0xff, 0x0b);
+        pushBytes(0x4e, 0x45, 0x54, 0x53, 0x43, 0x41, 0x50, 0x45, 0x32, 0x2e, 0x30);
+        pushBytes(0x03, 0x01, 0x00, 0x00, 0x00);
+
+        const delayCs = Math.max(2, Math.round(delayMs / 10));
+
+        function lzwEncode(indices, codeMin) {
+            const clearCode = 1 << codeMin;
+            const eoiCode = clearCode + 1;
+            let codeSize = codeMin + 1;
+            let nextCode = eoiCode + 1;
+            let dict = new Map();
+
+            function resetDict() {
+                dict = new Map();
+                codeSize = codeMin + 1;
+                nextCode = eoiCode + 1;
+            }
+
+            const bitStream = [];
+            let bitBuf = 0;
+            let bitCount = 0;
+
+            function writeBits(code, size) {
+                bitBuf |= (code << bitCount);
+                bitCount += size;
+                while (bitCount >= 8) {
+                    bitStream.push(bitBuf & 0xff);
+                    bitBuf >>= 8;
+                    bitCount -= 8;
+                }
+            }
+
+            resetDict();
+            writeBits(clearCode, codeSize);
+
+            let curKey = String(indices[0]);
+            for (let i = 1; i < indices.length; i++) {
+                const k = String(indices[i]);
+                const nextKey = curKey + ',' + k;
+                if (dict.has(nextKey)) {
+                    curKey = nextKey;
+                } else {
+                    writeBits(dict.get(curKey) ?? parseInt(curKey, 10), codeSize);
+                    if (nextCode < 4096) {
+                        dict.set(nextKey, nextCode++);
+                        if (nextCode > (1 << codeSize) && codeSize < 12) {
+                            codeSize++;
+                        }
+                    } else {
+                        writeBits(clearCode, codeSize);
+                        resetDict();
+                    }
+                    curKey = k;
+                }
+            }
+            writeBits(dict.get(curKey) ?? parseInt(curKey, 10), codeSize);
+            writeBits(eoiCode, codeSize);
+            if (bitCount > 0) {
+                bitStream.push(bitBuf & 0xff);
+            }
+
+            const subBlocks = [];
+            for (let i = 0; i < bitStream.length; i += 255) {
+                const chunk = bitStream.slice(i, i + 255);
+                subBlocks.push(chunk.length, ...chunk);
+            }
+            subBlocks.push(0x00);
+            return subBlocks;
+        }
+
+        framesIndices.forEach((frameGrid) => {
+            // disposal=2 (前フレームを透過背景へ戻す), transparent flag=1 (bit 0)
+            pushBytes(0x21, 0xf9, 0x04, 0x09);
+            pushShort(delayCs);
+            pushBytes(transparentIndex, 0x00);
+
+            pushBytes(0x2c);
+            pushShort(0);
+            pushShort(0);
+            pushShort(width);
+            pushShort(height);
+            pushBytes(0x00);
+
+            const pixels = [];
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const rawIdx = frameGrid[y][x] || 0;
+                    const safeIdx = rawIdx < tableSize ? rawIdx : 1;
+                    pixels.push(safeIdx);
+                }
+            }
+            const lzwData = lzwEncode(pixels, minCodeSize);
+            pushBytes(minCodeSize, ...lzwData);
+        });
+
+        pushBytes(0x3b);
+        return new Blob([new Uint8Array(out)], { type: 'image/gif' });
+    }
+
+    function buildGifBlob() {
+        const scale = Math.min(8, Math.max(1, Math.floor((parseInt(document.getElementById('export-scale').value, 10) || 6) / 2)));
+        const w = gridSize * scale;
+        const h = gridSize * scale;
+        const delayMs = parseInt(document.getElementById('gif-delay').value, 10) || 180;
+
+        const expandedFrames = [];
+        for (let step = 0; step < 8; step++) {
+            const smallGrid = getTransformedGrid(step);
+            const bigGrid = Array.from({ length: h }, (_, py) => {
+                const sy = Math.min(gridSize - 1, Math.floor(py / scale));
+                return Array.from({ length: w }, (_, px) => {
+                    const sx = Math.min(gridSize - 1, Math.floor(px / scale));
+                    return smallGrid[sy][sx];
+                });
+            });
+            expandedFrames.push(bigGrid);
+        }
+        return encodeAnimatedGifBlob(expandedFrames, w, h, delayMs);
+    }
+
+    function downloadAnimatedGif() {
+        const blob = buildGifBlob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const pat = document.getElementById('anim-pattern').value;
+        link.download = `garake_gif_${pat}_${gridSize}x${gridSize}_${getUniqueStamp()}.gif`;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('透過アニメーションGIFを保存しました！');
+    }
+
+    function buildAllCodesBundle() {
+        return [
+            '=== ① ドット配列コード ===',
+            document.getElementById('pattern-out').value,
+            '',
+            '=== ② 効果音(SFX)＆BGMコード ===',
+            document.getElementById('sfx-code-out').value,
+            '',
+            '=== ③ 動きアニメコード ===',
+            document.getElementById('anim-code-out').value
+        ].join('\n');
+    }
+
+    async function shareMediaAndAllCodes() {
+        const bundleText = buildAllCodesBundle();
+        const gifBlob = buildGifBlob();
+        const pat = document.getElementById('anim-pattern').value;
+        const fileName = `garake_gif_${pat}_${gridSize}x${gridSize}_${getUniqueStamp()}.gif`;
+
+        if (navigator.share && gifBlob && typeof File !== 'undefined') {
+            const file = new File([gifBlob], fileName, { type: 'image/gif' });
+            const shareDataWithFile = {
+                title: `Garake Sprite GIF (${pat})`,
+                text: bundleText,
+                files: [file]
+            };
+            try {
+                if (!navigator.canShare || navigator.canShare(shareDataWithFile)) {
+                    await navigator.share(shareDataWithFile);
+                    showToast('アニメGIFと全コードを共有しました！');
+                    return;
+                }
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+            }
+        }
+
+        try {
+            await navigator.clipboard.writeText(bundleText);
+        } catch (e) {}
+        const url = URL.createObjectURL(gifBlob);
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('共有非対応環境のため、全コードコピー＆GIF保存を実行しました！');
+    }
+
+    function copyById(id, toastMsg) {
+        const val = document.getElementById(id).value;
+        navigator.clipboard.writeText(val).then(() => {
+            showToast(toastMsg);
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        renderPaletteUI();
+        initGrid(12);
+    });
+</script>
+
+</body>
+</html>
